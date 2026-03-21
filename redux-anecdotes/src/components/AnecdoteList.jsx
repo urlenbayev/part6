@@ -1,32 +1,34 @@
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch, useSelector } from "react-redux";
 
-import { voteAnecdote } from '../reducers/anecdoteReducer'
+import { voteAnecdote } from "../reducers/anecdoteReducer";
+import { showNotification } from "../reducers/notificationReducer";
 
 const AnecdoteList = () => {
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const anecdotes = useSelector(({ anecdotes, filter }) =>
-    anecdotes.filter(anecdote =>
-      anecdote.content.toLowerCase().includes(filter.toLowerCase())
-    )
-  )
+    anecdotes.filter((anecdote) =>
+      anecdote.content.toLowerCase().includes(filter.toLowerCase()),
+    ),
+  );
 
-  const vote = id => {
-    dispatch(voteAnecdote(id))
-  }
+  const vote = (anecdote) => {
+    dispatch(voteAnecdote(anecdote.id));
+    dispatch(showNotification(`you voted '${anecdote.content}'`));
+  };
 
   return (
     <>
-      {anecdotes.map(anecdote => (
+      {anecdotes.map((anecdote) => (
         <div key={anecdote.id}>
           <div>{anecdote.content}</div>
           <div>
             has {anecdote.votes}
-            <button onClick={() => vote(anecdote.id)}>vote</button>
+            <button onClick={() => vote(anecdote)}>vote</button>
           </div>
         </div>
       ))}
     </>
-  )
-}
+  );
+};
 
-export default AnecdoteList
+export default AnecdoteList;
