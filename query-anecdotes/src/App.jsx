@@ -5,31 +5,52 @@ import {
 } from "@tanstack/react-query";
 import AnecdoteForm from "./components/AnecdoteForm";
 import Notification from "./components/Notification";
+import { useNotificationDispatch } from "./useNotificationContext";
 import {
   createAnecdote,
   getAnecdotes,
   updateAnecdote,
 } from "./requests";
 
+let notificationTimeoutId;
+
 const App = () => {
   const queryClient = useQueryClient();
+  const notificationDispatch = useNotificationDispatch();
   const anecdoteQuery = useQuery({
     queryKey: ["anecdotes"],
     queryFn: getAnecdotes,
     retry: false,
   });
 
+  const showNotification = (message) => {
+    notificationDispatch({
+      type: "SET_NOTIFICATION",
+      payload: message,
+    });
+
+    clearTimeout(notificationTimeoutId);
+    notificationTimeoutId = setTimeout(() => {
+      notificationDispatch({ type: "CLEAR_NOTIFICATION" });
+    }, 5000);
+  };
+
   const newAnecdoteMutation = useMutation({
     mutationFn: createAnecdote,
-    onSuccess: () => {
+    onSuccess: (createdAnecdote) => {
       queryClient.invalidateQueries({ queryKey: ["anecdotes"] });
+      showNotification(`anecdote '${createdAnecdote.content}' created`);
+    },
+    onError: (error) => {
+      showNotification(error.message);
     },
   });
 
   const voteAnecdoteMutation = useMutation({
     mutationFn: updateAnecdote,
-    onSuccess: () => {
+    onSuccess: (updatedAnecdote) => {
       queryClient.invalidateQueries({ queryKey: ["anecdotes"] });
+      showNotification(`anecdote '${updatedAnecdote.content}' voted`);
     },
   });
 
